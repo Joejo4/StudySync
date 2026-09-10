@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Create Account | StudySync</title>
+    <link rel="stylesheet" href="./CSS/variables.css" />
+    <link rel="stylesheet" href="./CSS/auth.css" />
+  </head>
+
+  <body>
+    <main class="auth-page">
+      <!-- Logo -->
+      <a href="index.html" class="auth-logo">
+        <span class="logo-mark">S</span>
+        <span>StudySync</span>
+      </a>
+
+      <!-- Signup Card -->
+      <section class="auth-card">
+        <div class="auth-header">
+          <span class="auth-eyebrow"> Get started </span>
+
+          <h1>
+            Build better habits
+            <span>together.</span>
+          </h1>
+
+          <p>Create your account and start your accountability journey.</p>
+        </div>
+
+        <!-- Signup Form -->
+        <form id="signup-form" class="auth-form">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="full-name"> Full name </label>
+
+            <input
+              type="text"
+              id="full-name"
+              name="full-name"
+              placeholder="Your name"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email"> Email address </label>
+
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password"> Password </label>
+
+            <div class="password-field">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Create a password"
+                autocomplete="new-password"
+                required
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                id="password-toggle"
+                aria-label="Show password"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirm-password"> Confirm password </label>
+
+            <div class="password-field">
+              <input
+                type="password"
+                id="confirm-password"
+                name="confirm-password"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                required
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                id="confirm-password-toggle"
+                aria-label="Show password"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <p id="signup-message" class="form-message" aria-live="polite"></p>
+
+          <!-- Submit -->
+          <button type="submit" class="auth-submit">Create account</button>
+        </form>
+
+        <!-- Login Link -->
+        <p class="auth-switch">
+          Already have an account?
+
+          <a href="login.html"> Log in </a>
+        </p>
+      </section>
+
+      <!-- Footer -->
+      <p class="auth-footer">© 2026 StudySync</p>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JS/superbase.js"></script>
+    <script src="./JS/signup.js"></script>
+  </body>
+</html>
