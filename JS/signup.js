@@ -95,7 +95,7 @@ signupForm.addEventListener("submit", async (event) => {
     // SUPABASE SIGNUP
     // ========================================
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await studySyncSupabase.auth.signUp({
       email: email,
 
       password: password,
