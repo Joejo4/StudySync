@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Dashboard | StudySync</title>
+    <link rel="stylesheet" href="./CSS/variables.css" />
+    <link rel="stylesheet" href="./CSS/dashboard.css" />
+  </head>
+
+  <body>
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <a href="dashboard.html" class="dashboard-logo">
+          <span class="logo-mark">S</span>
+          <span>StudySync</span>
+        </a>
+
+        <nav class="sidebar-nav">
+          <a href="dashboard.html" class="nav-item active">
+            <span class="nav-icon">⌂</span>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">♧</span>
+            <span>Partner</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">✓</span>
+            <span>Check-ins</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">↗</span>
+            <span>Progress</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">⚙</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <button class="logout-button" id="logout-button">
+          <span class="nav-icon">↪</span>
+          <span>Log out</span>
+        </button>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="dashboard-main">
+        <!-- Top Bar -->
+        <header class="dashboard-topbar">
+          <button
+            class="mobile-menu-button"
+            id="mobile-menu-button"
+            aria-label="Open navigation"
+          >
+            ☰
+          </button>
+
+          <div class="topbar-spacer"></div>
+
+          <div class="user-menu">
+            <div class="user-avatar" id="user-avatar">J</div>
+
+            <div class="user-details">
+              <span class="user-name" id="topbar-user-name"> User </span>
+
+              <span class="user-role"> Member </span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <section class="dashboard-content">
+          <div class="dashboard-heading">
+            <div>
+              <span class="dashboard-eyebrow"> Your dashboard </span>
+
+              <h1>
+                Good morning,
+                <span id="welcome-name">there</span>.
+              </h1>
+
+              <p>Keep showing up. Your progress starts with today.</p>
+            </div>
+
+            <button class="primary-button">+ Make a check-in</button>
+          </div>
+
+          <!-- Overview Cards -->
+          <section class="overview-grid">
+            <article class="overview-card">
+              <div class="overview-card-top">
+                <span class="overview-label"> Today's status </span>
+
+                <span class="overview-icon">✓</span>
+              </div>
+
+              <h2>Not checked in</h2>
+
+              <p>Share what you accomplished today.</p>
+            </article>
+
+            <article class="overview-card">
+              <div class="overview-card-top">
+                <span class="overview-label"> Current streak </span>
+
+                <span class="overview-icon">✦</span>
+              </div>
+
+              <h2>0 days</h2>
+
+              <p>Your consistency journey starts here.</p>
+            </article>
+
+            <article class="overview-card">
+              <div class="overview-card-top">
+                <span class="overview-label"> Accountability partner </span>
+
+                <span class="overview-icon">♧</span>
+              </div>
+
+              <h2>Not connected</h2>
+
+              <p>Invite someone to keep you accountable.</p>
+            </article>
+          </section>
+
+          <!-- Main Dashboard Grid -->
+          <section class="dashboard-grid">
+            <!-- Partner Section -->
+            <article class="dashboard-panel partner-panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-eyebrow"> Accountability </span>
+
+                  <h2>Your partner</h2>
+                </div>
+
+                <span class="panel-status"> Not connected </span>
+              </div>
+
+              <div class="empty-state">
+                <div class="empty-state-icon">♧</div>
+
+                <h3>No accountability partner yet</h3>
+
+                <p>Connect with someone and start showing up together.</p>
+
+                <button class="secondary-button">Find a partner</button>
+              </div>
+            </article>
+
+            <!-- Activity Section -->
+            <article class="dashboard-panel activity-panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-eyebrow"> Your activity </span>
+
+                  <h2>Recent check-ins</h2>
+                </div>
+
+                <a href="#" class="panel-link"> View all </a>
+              </div>
+
+              <div class="empty-state compact">
+                <div class="empty-state-icon">✓</div>
+
+                <h3>No check-ins yet</h3>
+
+                <p>Your completed activities will appear here.</p>
+              </div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JS/supabase.js"></script>
+    <script src="./JS/dashboard.js"></script>
+  </body>
+</html>
