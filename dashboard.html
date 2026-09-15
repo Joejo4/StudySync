@@ -97,8 +97,9 @@
 
               <p>Keep showing up. Your progress starts with today.</p>
             </div>
-
-            <button class="primary-button">+ Make a check-in</button>
+            <button class="primary-button" id="make-checkin-button">
+              + Make a check-in
+            </button>
           </div>
 
           <!-- Overview Cards -->
@@ -110,9 +111,11 @@
                 <span class="overview-icon">✓</span>
               </div>
 
-              <h2>Not checked in</h2>
+              <h2 id="today-status">Not checked in</h2>
 
-              <p>Share what you accomplished today.</p>
+              <p id="today-status-message">
+                Share what you accomplished today.
+              </p>
             </article>
 
             <article class="overview-card">
@@ -177,17 +180,69 @@
                 <a href="#" class="panel-link"> View all </a>
               </div>
 
-              <div class="empty-state compact">
+              <div class="empty-state compact" id="recent-checkins-empty">
                 <div class="empty-state-icon">✓</div>
 
                 <h3>No check-ins yet</h3>
 
                 <p>Your completed activities will appear here.</p>
               </div>
+
+              <div class="recent-checkins-list" id="recent-checkins-list"></div>
             </article>
           </section>
         </section>
       </main>
+    </div>
+    <!-- Check-in Modal -->
+    <div class="modal-overlay" id="checkin-modal">
+      <div class="checkin-modal" role="dialog" aria-modal="true">
+        <button
+          class="modal-close"
+          id="close-checkin-modal"
+          type="button"
+          aria-label="Close check-in"
+        >
+          ×
+        </button>
+
+        <div class="modal-header">
+          <span class="modal-eyebrow">Daily check-in</span>
+
+          <h2>What did you accomplish today?</h2>
+
+          <p>
+            Share what you showed up for today. It doesn't have to be something
+            big.
+          </p>
+        </div>
+
+        <form id="checkin-form">
+          <div class="form-group">
+            <label for="checkin-content"> Your check-in </label>
+
+            <textarea
+              id="checkin-content"
+              name="checkin-content"
+              rows="5"
+              placeholder="e.g. Finished my assignment, went for a run, practiced JavaScript..."
+              required
+            ></textarea>
+
+            <span class="form-hint"> Be honest. Small wins count too. </span>
+          </div>
+
+          <div
+            class="form-message"
+            id="checkin-message"
+            aria-live="polite"
+          ></div>
+
+          <button type="submit" class="primary-button checkin-submit">
+            Submit check-in
+          </button>
+        </form>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

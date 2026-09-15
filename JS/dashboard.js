@@ -11,8 +11,28 @@ const logoutButton = document.getElementById("logout-button");
 const sidebar = document.getElementById("sidebar");
 const mobileMenuButton = document.getElementById("mobile-menu-button");
 
+const makeCheckinButton = document.getElementById("make-checkin-button");
+
+const checkinModal = document.getElementById("checkin-modal");
+
+const closeCheckinButton = document.getElementById("close-checkin-modal");
+
+const checkinForm = document.getElementById("checkin-form");
+
+const checkinContent = document.getElementById("checkin-content");
+
+const checkinMessage = document.getElementById("checkin-message");
+
+const todayStatus = document.getElementById("today-status");
+
+const todayStatusMessage = document.getElementById("today-status-message");
+
+const recentCheckinsEmpty = document.getElementById("recent-checkins-empty");
+
+const recentCheckinsList = document.getElementById("recent-checkins-list");
+
 // ========================================
-// GET CURRENT USER
+// LOAD DASHBOARD USER
 // ========================================
 
 async function loadDashboardUser() {
@@ -76,8 +96,269 @@ mobileMenuButton.addEventListener("click", () => {
   sidebar.classList.toggle("open");
 });
 
+const sidebarLinks = sidebar.querySelectorAll(".nav-item");
+
+sidebarLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+  });
+});
+
+// ========================================
+// CHECK-IN MODAL
+// ========================================
+
+function openCheckinModal() {
+  checkinModal.classList.add("open");
+
+  setTimeout(() => {
+    checkinContent.focus();
+  }, 200);
+}
+
+function closeCheckinModal() {
+  checkinModal.classList.remove("open");
+
+  checkinMessage.textContent = "";
+}
+
+// Open modal
+
+makeCheckinButton.addEventListener("click", () => {
+  openCheckinModal();
+});
+
+// Close modal with X
+
+closeCheckinButton.addEventListener("click", () => {
+  closeCheckinModal();
+});
+
+// Close modal by clicking outside
+
+checkinModal.addEventListener("click", (event) => {
+  if (event.target === checkinModal) {
+    closeCheckinModal();
+  }
+});
+
+// Close modal with Escape key
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && checkinModal.classList.contains("open")) {
+    closeCheckinModal();
+  }
+});
+
+// ========================================
+// LOAD CHECK-INS
+// ========================================
+function escapeHTML(value) {
+  const div = document.createElement("div");
+
+  div.textContent = value;
+
+  return div.innerHTML;
+}
+async function loadCheckins() {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await studySyncSupabase.auth.getUser();
+
+    if (userError) {
+      throw userError;
+    }
+
+    if (!user) {
+      return;
+    }
+
+    // Get the user's check-ins
+    const { data: checkins, error } = await studySyncSupabase
+      .from("check_ins")
+      .select("id, content, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(5);
+
+    if (error) {
+      throw error;
+    }
+
+    // No check-ins
+    if (!checkins || checkins.length === 0) {
+      todayStatus.textContent = "Not checked in";
+
+      todayStatusMessage.textContent = "Share what you accomplished today.";
+
+      recentCheckinsEmpty.style.display = "flex";
+
+      recentCheckinsList.innerHTML = "";
+
+      return;
+    }
+
+    // ----------------------------------------
+    // CHECK IF USER CHECKED IN TODAY
+    // ----------------------------------------
+
+    const today = new Date();
+
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
+    const todayEnd = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
+
+    const checkedInToday = checkins.some((checkin) => {
+      const checkinDate = new Date(checkin.created_at);
+
+      return checkinDate >= todayStart && checkinDate < todayEnd;
+    });
+
+    if (checkedInToday) {
+      todayStatus.textContent = "Checked in ✓";
+
+      todayStatusMessage.textContent = "Nice work. You showed up today.";
+    } else {
+      todayStatus.textContent = "Not checked in";
+
+      todayStatusMessage.textContent = "Share what you accomplished today.";
+    }
+
+    // ----------------------------------------
+    // DISPLAY RECENT CHECK-INS
+    // ----------------------------------------
+
+    recentCheckinsEmpty.style.display = "none";
+
+    recentCheckinsList.innerHTML = "";
+
+    checkins.forEach((checkin) => {
+      const item = document.createElement("article");
+
+      item.className = "recent-checkin-item";
+
+      const date = new Date(checkin.created_at);
+
+      const formattedDate = date.toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+
+      const formattedTime = date.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+
+      item.innerHTML = `
+                <div class="recent-checkin-icon">
+                    ✓
+                </div>
+
+                <div class="recent-checkin-content">
+                    <p>${escapeHTML(checkin.content)}</p>
+
+                    <span>
+                        ${formattedDate} · ${formattedTime}
+                    </span>
+                </div>
+            `;
+
+      recentCheckinsList.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Load check-ins error:", error);
+  }
+}
+
+// ========================================
+// SUBMIT CHECK-IN
+// ========================================
+
+checkinForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const content = checkinContent.value.trim();
+
+  if (!content) {
+    checkinMessage.style.color = "var(--color-danger)";
+
+    checkinMessage.textContent = "Tell us what you accomplished today.";
+
+    return;
+  }
+
+  const submitButton = checkinForm.querySelector(".checkin-submit");
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting...";
+
+  checkinMessage.textContent = "";
+
+  try {
+    // Get the currently logged-in user
+
+    const {
+      data: { user },
+      error: userError,
+    } = await studySyncSupabase.auth.getUser();
+
+    if (userError) {
+      throw userError;
+    }
+
+    if (!user) {
+      window.location.href = "login.html";
+
+      return;
+    }
+
+    // Save the check-in to Supabase
+
+    const { error } = await studySyncSupabase.from("check_ins").insert({
+      user_id: user.id,
+      content: content,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    // Success
+
+    checkinMessage.style.color = "var(--color-success)";
+
+    checkinMessage.textContent = "Check-in recorded! 🎉";
+
+    checkinForm.reset();
+  } catch (error) {
+    console.error("Check-in error:", error);
+
+    checkinMessage.style.color = "var(--color-danger)";
+
+    checkinMessage.textContent =
+      error.message || "Something went wrong. Please try again.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit check-in";
+  }
+});
+
 // ========================================
 // INITIALIZE
 // ========================================
 
 loadDashboardUser();
+loadCheckins();
