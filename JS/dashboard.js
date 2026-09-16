@@ -30,6 +30,7 @@ const todayStatusMessage = document.getElementById("today-status-message");
 const recentCheckinsEmpty = document.getElementById("recent-checkins-empty");
 
 const recentCheckinsList = document.getElementById("recent-checkins-list");
+const currentStreak = document.getElementById("current-streak");
 
 // ========================================
 // LOAD DASHBOARD USER
@@ -176,21 +177,25 @@ async function loadCheckins() {
     }
 
     // Get the user's check-ins
+
     const { data: checkins, error } = await studySyncSupabase
       .from("check_ins")
-      .select("id, content, created_at")
+      .select("id, content, created_at, check_in_date")
       .eq("user_id", user.id)
       .order("created_at", {
         ascending: false,
-      })
-      .limit(5);
+      });
 
     if (error) {
       throw error;
     }
+    const streak = calculateStreak(checkins);
+
+    currentStreak.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
 
     // No check-ins
     if (!checkins || checkins.length === 0) {
+      currentStreak.textContent = "0 days";
       todayStatus.textContent = "Not checked in";
 
       todayStatusMessage.textContent = "Share what you accomplished today.";
@@ -283,10 +288,7 @@ async function loadCheckins() {
   }
 }
 
-// ========================================
-// SUBMIT CHECK-IN
-// ========================================
-
+// CHECK-IN SUBMIT
 checkinForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -304,12 +306,9 @@ checkinForm.addEventListener("submit", async (event) => {
 
   submitButton.disabled = true;
   submitButton.textContent = "Submitting...";
-
   checkinMessage.textContent = "";
 
   try {
-    // Get the currently logged-in user
-
     const {
       data: { user },
       error: userError,
@@ -321,28 +320,47 @@ checkinForm.addEventListener("submit", async (event) => {
 
     if (!user) {
       window.location.href = "login.html";
-
       return;
     }
 
-    // Save the check-in to Supabase
+    // Get today's date using the user's browser timezone
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const checkInDate = `${year}-${month}-${day}`;
 
     const { error } = await studySyncSupabase.from("check_ins").insert({
       user_id: user.id,
       content: content,
+      check_in_date: checkInDate,
     });
 
     if (error) {
+      // User already checked in today
+      if (error.code === "23505") {
+        checkinMessage.style.color = "var(--color-warning)";
+
+        checkinMessage.textContent =
+          "You've already checked in today. Come back tomorrow! ✓";
+
+        return;
+      }
+
       throw error;
     }
-
-    // Success
 
     checkinMessage.style.color = "var(--color-success)";
 
     checkinMessage.textContent = "Check-in recorded! 🎉";
 
     checkinForm.reset();
+
+    // Refresh dashboard data
+    await loadCheckins();
   } catch (error) {
     console.error("Check-in error:", error);
 
@@ -352,10 +370,61 @@ checkinForm.addEventListener("submit", async (event) => {
       error.message || "Something went wrong. Please try again.";
   } finally {
     submitButton.disabled = false;
+
     submitButton.textContent = "Submit check-in";
   }
 });
 
+// CALCULATE CURRENT STREAK
+function calculateStreak(checkins) {
+  if (!checkins || checkins.length === 0) {
+    return 0;
+  }
+
+  // Get unique check-in dates
+  const dates = [...new Set(checkins.map((checkin) => checkin.check_in_date))];
+
+  // Sort newest → oldest
+  dates.sort((a, b) => {
+    return new Date(b) - new Date(a);
+  });
+
+  const today = new Date();
+
+  const todayDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  // Convert today's date to YYYY-MM-DD
+  const todayString = `${todayDate.getFullYear()}-${String(
+    todayDate.getMonth() + 1,
+  ).padStart(2, "0")}-${String(todayDate.getDate()).padStart(2, "0")}`;
+
+  // Streak must include today
+  if (dates[0] !== todayString) {
+    return 0;
+  }
+
+  let streak = 1;
+
+  for (let i = 1; i < dates.length; i++) {
+    const current = new Date(dates[i - 1]);
+
+    const previous = new Date(dates[i]);
+
+    const difference = Math.round((current - previous) / (1000 * 60 * 60 * 24));
+
+    if (difference === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
 // ========================================
 // INITIALIZE
 // ========================================

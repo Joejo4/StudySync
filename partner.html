@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Partner | StudySync</title>
+
+    <link rel="stylesheet" href="./CSS/variables.css" />
+    <link rel="stylesheet" href="./CSS/dashboard.css" />
+    <link rel="stylesheet" href="./CSS/partner.css" />
+  </head>
+
+  <body>
+    <div class="dashboard-layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <a href="dashboard.html" class="dashboard-logo">
+            <span class="logo-mark">S</span>
+            <span>StudySync</span>
+          </a>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="dashboard.html" class="nav-item">
+            <span class="nav-icon">⌂</span>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="partner.html" class="nav-item active">
+            <span class="nav-icon">♧</span>
+            <span>Partner</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">✓</span>
+            <span>Check-ins</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">◔</span>
+            <span>Progress</span>
+          </a>
+
+          <a href="#" class="nav-item">
+            <span class="nav-icon">⚙</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <button
+            class="nav-item logout-button"
+            id="logout-button"
+            type="button"
+          >
+            <span class="nav-icon">↪</span>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="dashboard-main">
+        <!-- Topbar -->
+        <header class="dashboard-topbar">
+          <button
+            class="mobile-menu-button"
+            id="mobile-menu-button"
+            type="button"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+
+          <div class="topbar-spacer"></div>
+
+          <button
+            class="theme-toggle"
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+          >
+            ◐
+          </button>
+
+          <div class="user-menu">
+            <div class="user-avatar" id="user-avatar">?</div>
+
+            <div class="user-details">
+              <span class="user-name" id="topbar-user-name"> User </span>
+
+              <span class="user-role"> Member </span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page content -->
+        <section class="dashboard-content partner-page">
+          <div class="page-heading">
+            <div>
+              <span class="page-eyebrow"> Accountability </span>
+
+              <h1>Your Partner</h1>
+
+              <p>
+                Stay accountable with someone who is showing up alongside you.
+              </p>
+            </div>
+          </div>
+
+          <!-- Find partner -->
+          <section class="partner-card">
+            <div class="partner-card-header">
+              <div>
+                <span class="section-eyebrow"> Find someone </span>
+
+                <h2>Add an accountability partner</h2>
+
+                <p>
+                  Enter their exact StudySync username to send them a request.
+                </p>
+              </div>
+            </div>
+
+            <form id="partner-search-form">
+              <div class="partner-input-row">
+                <div class="form-group">
+                  <label for="partner-username"> Username </label>
+
+                  <div class="username-input">
+                    <span>@</span>
+
+                    <input
+                      type="text"
+                      id="partner-username"
+                      name="partner-username"
+                      placeholder="username"
+                      autocomplete="off"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  class="primary-button"
+                  id="find-partner-button"
+                >
+                  Find partner
+                </button>
+              </div>
+            </form>
+
+            <div
+              class="partner-message"
+              id="partner-message"
+              aria-live="polite"
+            ></div>
+
+            <!-- Search result -->
+            <div class="partner-result" id="partner-result" hidden>
+              <div class="partner-user-info">
+                <div class="partner-avatar" id="result-avatar">?</div>
+
+                <div>
+                  <h3 id="result-name">User</h3>
+
+                  <p id="result-username">@username</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="secondary-button"
+                id="send-request-button"
+              >
+                Send request
+              </button>
+            </div>
+          </section>
+
+          <!-- Incoming requests -->
+          <section class="partner-card">
+            <div class="partner-card-header">
+              <div>
+                <span class="section-eyebrow"> Requests </span>
+
+                <h2>Incoming requests</h2>
+
+                <p>People who want to become your accountability partner.</p>
+              </div>
+            </div>
+
+            <div class="requests-list" id="requests-list">
+              <div class="partner-empty" id="requests-empty">
+                <span class="empty-icon">♧</span>
+
+                <h3>No pending requests</h3>
+
+                <p>
+                  When someone sends you a partner request, it will appear here.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Current partner -->
+          <section class="partner-card">
+            <div class="partner-card-header">
+              <div>
+                <span class="section-eyebrow"> Connected </span>
+
+                <h2>Your accountability partner</h2>
+
+                <p>The person you're currently accountable with.</p>
+              </div>
+            </div>
+
+            <div class="current-partner" id="current-partner">
+              <div class="partner-empty">
+                <span class="empty-icon">◎</span>
+
+                <h3>No partner yet</h3>
+
+                <p>Find someone above to start your accountability journey.</p>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="./JS/supabase.js"></script>
+    <script src="./JS/theme.js"></script>
+    <script src="./JS/partner.js"></script>
+  </body>
+</html>

@@ -5,6 +5,7 @@
 const signupForm = document.getElementById("signup-form");
 
 const fullNameInput = document.getElementById("full-name");
+const username = document.getElementById("username").value.trim().toLowerCase();
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirm-password");
@@ -95,18 +96,16 @@ signupForm.addEventListener("submit", async (event) => {
     // SUPABASE SIGNUP
     // ========================================
 
-    const { data, error } = await studySyncSupabase.auth.signUp({
-      email: email,
-
-      password: password,
-
+    await studySyncSupabase.auth.signUp({
+      email,
+      password,
       options: {
         data: {
           full_name: fullName,
+          username: username,
         },
       },
     });
-
     // ========================================
     // HANDLE ERROR
     // ========================================
