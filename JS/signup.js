@@ -5,14 +5,19 @@
 const signupForm = document.getElementById("signup-form");
 
 const fullNameInput = document.getElementById("full-name");
-const username = document.getElementById("username").value.trim().toLowerCase();
+
+const usernameInput = document.getElementById("username");
+
 const emailInput = document.getElementById("email");
+
 const passwordInput = document.getElementById("password");
+
 const confirmPasswordInput = document.getElementById("confirm-password");
 
 const signupMessage = document.getElementById("signup-message");
 
 const passwordToggle = document.getElementById("password-toggle");
+
 const confirmPasswordToggle = document.getElementById(
   "confirm-password-toggle",
 );
@@ -54,10 +59,18 @@ confirmPasswordToggle.addEventListener("click", () => {
 signupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  // Get values
+  // ========================================
+  // GET VALUES
+  // ========================================
+
   const fullName = fullNameInput.value.trim();
+
+  const username = usernameInput.value.trim().toLowerCase();
+
   const email = emailInput.value.trim();
+
   const password = passwordInput.value;
+
   const confirmPassword = confirmPasswordInput.value;
 
   // Clear previous message
@@ -69,16 +82,32 @@ signupForm.addEventListener("submit", async (event) => {
 
   if (!fullName) {
     signupMessage.textContent = "Please enter your full name.";
+
+    return;
+  }
+
+  if (!username) {
+    signupMessage.textContent = "Please choose a username.";
+
+    return;
+  }
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    signupMessage.textContent =
+      "Username must be 3–20 characters and can only contain letters, numbers, and underscores.";
+
     return;
   }
 
   if (password.length < 6) {
     signupMessage.textContent = "Password must be at least 6 characters.";
+
     return;
   }
 
   if (password !== confirmPassword) {
     signupMessage.textContent = "Passwords do not match.";
+
     return;
   }
 
@@ -89,16 +118,18 @@ signupForm.addEventListener("submit", async (event) => {
   const submitButton = signupForm.querySelector(".auth-submit");
 
   submitButton.disabled = true;
+
   submitButton.textContent = "Creating account...";
 
-  try {
-    // ========================================
-    // SUPABASE SIGNUP
-    // ========================================
+  // ========================================
+  // SUPABASE SIGNUP
+  // ========================================
 
-    await studySyncSupabase.auth.signUp({
+  try {
+    const { data, error } = await studySyncSupabase.auth.signUp({
       email,
       password,
+
       options: {
         data: {
           full_name: fullName,
@@ -106,6 +137,7 @@ signupForm.addEventListener("submit", async (event) => {
         },
       },
     });
+
     // ========================================
     // HANDLE ERROR
     // ========================================
@@ -135,6 +167,7 @@ signupForm.addEventListener("submit", async (event) => {
       error.message || "Something went wrong. Please try again.";
   } finally {
     submitButton.disabled = false;
+
     submitButton.textContent = "Create account";
   }
 });

@@ -285,9 +285,7 @@ sendRequestButton.addEventListener("click", async () => {
   }
 });
 
-// =========================================
 // ESCAPE HTML
-// =========================================
 
 function escapeHTML(value) {
   const div = document.createElement("div");
@@ -297,8 +295,259 @@ function escapeHTML(value) {
   return div.innerHTML;
 }
 
-// =========================================
+// LOAD INCOMING PARTNER REQUESTS
+
+async function loadIncomingRequests() {
+  const requestsList = document.getElementById("requests-list");
+
+  const requestsEmpty = document.getElementById("requests-empty");
+
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) return;
+
+    const { data: requests, error } = await studySyncSupabase.rpc(
+      "get_incoming_partner_requests",
+    );
+
+    if (error) throw error;
+
+    // Remove existing request cards
+    requestsList
+      .querySelectorAll(".partner-request")
+      .forEach((item) => item.remove());
+
+    // No requests
+    if (!requests || requests.length === 0) {
+      requestsEmpty.style.display = "flex";
+      return;
+    }
+
+    requestsEmpty.style.display = "none";
+
+    requests.forEach((request) => {
+      const fullName = request.sender_full_name || "StudySync user";
+
+      const username = request.sender_username || "username";
+
+      const avatarLetter = fullName.charAt(0).toUpperCase();
+
+      const requestElement = document.createElement("div");
+
+      requestElement.className = "partner-request";
+
+      requestElement.dataset.requestId = request.id;
+
+      requestElement.innerHTML = `
+                <div class="partner-user-info">
+
+                    <div class="partner-avatar">
+                        ${
+                          request.sender_avatar_url
+                            ? `<img
+                                    src="${escapeHTML(
+                                      request.sender_avatar_url,
+                                    )}"
+                                    alt=""
+                                />`
+                            : avatarLetter
+                        }
+                    </div>
+
+                    <div>
+                        <h3>
+                            ${escapeHTML(fullName)}
+                        </h3>
+
+                        <p>
+                            @${escapeHTML(username)}
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="request-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button accept-request"
+                        data-request-id="${request.id}"
+                    >
+                        Accept
+                    </button>
+
+                    <button
+                        type="button"
+                        class="decline-button decline-request"
+                        data-request-id="${request.id}"
+                    >
+                        Decline
+                    </button>
+
+                </div>
+            `;
+
+      requestsList.appendChild(requestElement);
+    });
+  } catch (error) {
+    console.error("Load incoming requests error:", error);
+  }
+}
+
+async function respondToRequest(requestId, response) {
+  try {
+    const { error } = await studySyncSupabase.rpc(
+      "respond_to_partner_request",
+      {
+        request_id: requestId,
+        response: response,
+      },
+    );
+
+    if (error) throw error;
+
+    await loadIncomingRequests();
+
+    if (response === "accepted") {
+      await loadCurrentPartner();
+
+      showMessage("Partner request accepted! 🎉", "success");
+    } else {
+      showMessage("Partner request declined.", "success");
+    }
+  } catch (error) {
+    console.error("Respond to partner request error:", error);
+
+    showMessage(
+      error.message || "Something went wrong. Please try again.",
+      "error",
+    );
+  }
+}
+
+const requestsList = document.getElementById("requests-list");
+
+requestsList.addEventListener("click", async (event) => {
+  const acceptButton = event.target.closest(".accept-request");
+
+  const declineButton = event.target.closest(".decline-request");
+
+  if (acceptButton) {
+    const requestId = acceptButton.dataset.requestId;
+
+    acceptButton.disabled = true;
+    acceptButton.textContent = "Accepting...";
+
+    await respondToRequest(requestId, "accepted");
+
+    return;
+  }
+
+  if (declineButton) {
+    const requestId = declineButton.dataset.requestId;
+
+    declineButton.disabled = true;
+    declineButton.textContent = "Declining...";
+
+    await respondToRequest(requestId, "declined");
+  }
+});
+
+async function loadCurrentPartner() {
+  const currentPartner = document.getElementById("current-partner");
+
+  const currentPartnerEmpty = document.getElementById("current-partner-empty");
+
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) return;
+
+    const { data: partners, error } = await studySyncSupabase.rpc(
+      "get_current_partner",
+    );
+
+    if (error) throw error;
+
+    if (!partners || partners.length === 0) {
+      currentPartner.style.display = "none";
+      currentPartnerEmpty.style.display = "flex";
+      return;
+    }
+
+    const partner = partners[0];
+
+    const fullName = partner.full_name || "StudySync user";
+
+    const username = partner.username || "username";
+
+    const avatarLetter = fullName.charAt(0).toUpperCase();
+
+    if (partner.avatar_url) {
+      currentPartner.innerHTML = `
+                <div class="partner-user-info">
+
+                    <div class="partner-avatar">
+
+                        <img
+                            src="${escapeHTML(partner.avatar_url)}"
+                            alt=""
+                        />
+
+                    </div>
+
+                    <div>
+                        <h3>
+                            ${escapeHTML(fullName)}
+                        </h3>
+
+                        <p>
+                            @${escapeHTML(username)}
+                        </p>
+
+                        <span class="partner-status">
+                            Connected
+                        </span>
+                    </div>
+
+                </div>
+            `;
+    } else {
+      currentPartner.innerHTML = `
+                <div class="partner-user-info">
+
+                    <div class="partner-avatar">
+                        ${escapeHTML(avatarLetter)}
+                    </div>
+
+                    <div>
+                        <h3>
+                            ${escapeHTML(fullName)}
+                        </h3>
+
+                        <p>
+                            @${escapeHTML(username)}
+                        </p>
+
+                        <span class="partner-status">
+                            Connected
+                        </span>
+                    </div>
+
+                </div>
+            `;
+    }
+
+    currentPartner.style.display = "flex";
+    currentPartnerEmpty.style.display = "none";
+  } catch (error) {
+    console.error("Load current partner error:", error);
+  }
+}
+
 // INITIALIZE
-// =========================================
 
 loadCurrentUser();
+loadIncomingRequests();
+loadCurrentPartner();
