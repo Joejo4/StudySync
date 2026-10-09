@@ -1,7 +1,5 @@
-// ========================================
 // STUDYSYNC — DASHBOARD
-// ========================================
-
+const welcomeGreeting = document.getElementById("welcome-greeting");
 const welcomeName = document.getElementById("welcome-name");
 const topbarUserName = document.getElementById("topbar-user-name");
 const userAvatar = document.getElementById("user-avatar");
@@ -61,15 +59,25 @@ async function loadDashboardUser() {
 
   const firstName = fullName.trim().split(" ")[0];
 
+  const hour = new Date().getHours();
+
+  let greeting;
+
+  if (hour < 12) {
+    greeting = "Good morning";
+  } else if (hour < 18) {
+    greeting = "Good afternoon";
+  } else {
+    greeting = "Good evening";
+  }
+
+  welcomeGreeting.textContent = greeting;
   welcomeName.textContent = firstName;
   topbarUserName.textContent = fullName;
-
   userAvatar.textContent = firstName.charAt(0).toUpperCase();
 }
 
-// ========================================
 // LOGOUT
-// ========================================
 
 logoutButton.addEventListener("click", async () => {
   logoutButton.disabled = true;
@@ -426,8 +434,171 @@ function calculateStreak(checkins) {
   return streak;
 }
 // ========================================
+
+async function loadDashboardPartner() {
+  const partnerCard = document.getElementById("partner-card");
+
+  const overviewPartnerName = document.getElementById("overview-partner-name");
+
+  const overviewPartnerMessage = document.getElementById(
+    "overview-partner-message",
+  );
+
+  const partnerPanelStatus = document.getElementById("partner-panel-status");
+
+  if (!partnerCard) return;
+
+  try {
+    const { data: partners, error } = await studySyncSupabase.rpc(
+      "get_current_partner",
+    );
+
+    if (error) throw error;
+
+    // ----------------------------------------
+    // NO PARTNER
+    // ----------------------------------------
+
+    if (!partners || partners.length === 0) {
+      if (overviewPartnerName) {
+        overviewPartnerName.textContent = "Not connected";
+      }
+
+      if (overviewPartnerMessage) {
+        overviewPartnerMessage.textContent =
+          "Invite someone to keep you accountable.";
+      }
+
+      if (partnerPanelStatus) {
+        partnerPanelStatus.textContent = "Not connected";
+      }
+
+      partnerCard.innerHTML = `
+                <div class="panel-heading">
+                    <div>
+                        <span class="panel-eyebrow">
+                            Accountability
+                        </span>
+
+                        <h2>Your partner</h2>
+                    </div>
+
+                    <span class="panel-status">
+                        Not connected
+                    </span>
+                </div>
+
+                <div class="empty-state">
+                    <div class="empty-state-icon">♧</div>
+
+                    <h3>No accountability partner yet</h3>
+
+                    <p>
+                        Connect with someone and start
+                        showing up together.
+                    </p>
+
+                    <a
+                        href="partner.html"
+                        class="secondary-button"
+                    >
+                        Find a partner
+                    </a>
+                </div>
+            `;
+
+      return;
+    }
+
+    // ----------------------------------------
+    // PARTNER EXISTS
+    // ----------------------------------------
+
+    const partner = partners[0];
+
+    const fullName = partner.full_name || "StudySync user";
+
+    const username = partner.username || "username";
+
+    const avatarLetter = fullName.charAt(0).toUpperCase();
+
+    // Update overview card
+    if (overviewPartnerName) {
+      overviewPartnerName.textContent = fullName;
+    }
+
+    if (overviewPartnerMessage) {
+      overviewPartnerMessage.textContent = `@${username}`;
+    }
+
+    // Update large partner panel
+    partnerCard.innerHTML = `
+            <div class="panel-heading">
+                <div>
+                    <span class="panel-eyebrow">
+                        Accountability
+                    </span>
+
+                    <h2>Your partner</h2>
+                </div>
+
+                <span class="panel-status">
+                    Connected
+                </span>
+            </div>
+
+            <div class="dashboard-partner">
+
+                <div class="dashboard-partner-info">
+
+                    <div class="dashboard-partner-avatar">
+
+                        ${
+                          partner.avatar_url
+                            ? `
+                                    <img
+                                        src="${escapeHTML(partner.avatar_url)}"
+                                        alt=""
+                                    />
+                                `
+                            : escapeHTML(avatarLetter)
+                        }
+
+                    </div>
+
+                    <div>
+                        <h3>
+                            ${escapeHTML(fullName)}
+                        </h3>
+
+                        <p>
+                            @${escapeHTML(username)}
+                        </p>
+
+                        <span class="partner-status">
+                            Connected
+                        </span>
+                    </div>
+
+                </div>
+
+                <a
+                    href="partner.html"
+                    class="secondary-button"
+                >
+                    View partner
+                </a>
+
+            </div>
+        `;
+  } catch (error) {
+    console.error("Load dashboard partner error:", error);
+  }
+}
+
 // INITIALIZE
 // ========================================
 
 loadDashboardUser();
 loadCheckins();
+loadDashboardPartner();
