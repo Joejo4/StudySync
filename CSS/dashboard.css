@@ -948,3 +948,47 @@ button {
     width: 100%;
   }
 }
+
+/* Activity feed author labels */
+.recent-checkin-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.recent-checkin-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkin-author-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.checkin-author-row strong {
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.checkin-author-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+}
+
+.partner-checkin-item {
+  border-left: 2px solid var(--color-primary);
+  padding-left: 10px;
+}
+
+.recent-checkin-content p {
+  overflow-wrap: anywhere;
+}

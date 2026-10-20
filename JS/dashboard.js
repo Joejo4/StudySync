@@ -1,38 +1,55 @@
 // STUDYSYNC — DASHBOARD
+
 const welcomeGreeting = document.getElementById("welcome-greeting");
 const welcomeName = document.getElementById("welcome-name");
 const topbarUserName = document.getElementById("topbar-user-name");
 const userAvatar = document.getElementById("user-avatar");
-
 const logoutButton = document.getElementById("logout-button");
-
 const sidebar = document.getElementById("sidebar");
 const mobileMenuButton = document.getElementById("mobile-menu-button");
-
 const makeCheckinButton = document.getElementById("make-checkin-button");
-
 const checkinModal = document.getElementById("checkin-modal");
-
 const closeCheckinButton = document.getElementById("close-checkin-modal");
-
 const checkinForm = document.getElementById("checkin-form");
-
 const checkinContent = document.getElementById("checkin-content");
-
 const checkinMessage = document.getElementById("checkin-message");
-
 const todayStatus = document.getElementById("today-status");
-
 const todayStatusMessage = document.getElementById("today-status-message");
-
 const recentCheckinsEmpty = document.getElementById("recent-checkins-empty");
-
 const recentCheckinsList = document.getElementById("recent-checkins-list");
 const currentStreak = document.getElementById("current-streak");
 
-// ========================================
-// LOAD DASHBOARD USER
-// ========================================
+let currentUser = null;
+let currentPartner = null;
+
+function escapeHTML(value = "") {
+  const div = document.createElement("div");
+  div.textContent = String(value);
+  return div.innerHTML;
+}
+
+function getLocalDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatCheckinDate(checkin) {
+  const dateString =
+    checkin.check_in_date || getLocalDateString(new Date(checkin.created_at));
+
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+// LOAD AUTHENTICATED USER
 
 async function loadDashboardUser() {
   const {
@@ -40,46 +57,35 @@ async function loadDashboardUser() {
     error,
   } = await studySyncSupabase.auth.getSession();
 
-  if (error) {
-    console.error("Session error:", error);
+  if (error || !session) {
+    if (error) console.error("Session error:", error);
     window.location.href = "login.html";
     return;
   }
 
-  // No authenticated user
-  if (!session) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const user = session.user;
+  currentUser = session.user;
 
   const fullName =
-    user.user_metadata?.full_name || user.email?.split("@")[0] || "there";
+    currentUser.user_metadata?.full_name ||
+    currentUser.email?.split("@")[0] ||
+    "there";
 
-  const firstName = fullName.trim().split(" ")[0];
-
+  const firstName = fullName.trim().split(/\s+/)[0] || "there";
   const hour = new Date().getHours();
 
-  let greeting;
+  welcomeGreeting.textContent =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  if (hour < 12) {
-    greeting = "Good morning";
-  } else if (hour < 18) {
-    greeting = "Good afternoon";
-  } else {
-    greeting = "Good evening";
-  }
-
-  welcomeGreeting.textContent = greeting;
   welcomeName.textContent = firstName;
   topbarUserName.textContent = fullName;
   userAvatar.textContent = firstName.charAt(0).toUpperCase();
+
+  await Promise.all([loadCheckins(), loadDashboardPartner()]);
 }
 
 // LOGOUT
 
-logoutButton.addEventListener("click", async () => {
+logoutButton?.addEventListener("click", async () => {
   logoutButton.disabled = true;
   logoutButton.textContent = "Logging out...";
 
@@ -87,226 +93,246 @@ logoutButton.addEventListener("click", async () => {
 
   if (error) {
     console.error("Logout error:", error);
-
     logoutButton.disabled = false;
     logoutButton.textContent = "Log out";
-
     return;
   }
 
   window.location.href = "login.html";
 });
 
-// ========================================
 // MOBILE SIDEBAR
-// ========================================
 
-mobileMenuButton.addEventListener("click", () => {
-  sidebar.classList.toggle("open");
+mobileMenuButton?.addEventListener("click", () => {
+  sidebar?.classList.toggle("open");
 });
 
-const sidebarLinks = sidebar.querySelectorAll(".nav-item");
-
-sidebarLinks.forEach((link) => {
+sidebar?.querySelectorAll(".nav-item").forEach((link) => {
   link.addEventListener("click", () => {
     sidebar.classList.remove("open");
   });
 });
 
-// ========================================
 // CHECK-IN MODAL
-// ========================================
 
 function openCheckinModal() {
-  checkinModal.classList.add("open");
+  checkinModal?.classList.add("open");
 
-  setTimeout(() => {
-    checkinContent.focus();
+  window.setTimeout(() => {
+    checkinContent?.focus();
   }, 200);
 }
 
 function closeCheckinModal() {
-  checkinModal.classList.remove("open");
+  checkinModal?.classList.remove("open");
 
-  checkinMessage.textContent = "";
+  if (checkinMessage) {
+    checkinMessage.textContent = "";
+  }
 }
 
-// Open modal
+makeCheckinButton?.addEventListener("click", openCheckinModal);
+closeCheckinButton?.addEventListener("click", closeCheckinModal);
 
-makeCheckinButton.addEventListener("click", () => {
-  openCheckinModal();
-});
-
-// Close modal with X
-
-closeCheckinButton.addEventListener("click", () => {
-  closeCheckinModal();
-});
-
-// Close modal by clicking outside
-
-checkinModal.addEventListener("click", (event) => {
+checkinModal?.addEventListener("click", (event) => {
   if (event.target === checkinModal) {
     closeCheckinModal();
   }
 });
 
-// Close modal with Escape key
-
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && checkinModal.classList.contains("open")) {
+  if (event.key === "Escape" && checkinModal?.classList.contains("open")) {
     closeCheckinModal();
   }
 });
 
-// ========================================
-// LOAD CHECK-INS
-// ========================================
-function escapeHTML(value) {
-  const div = document.createElement("div");
+// CALCULATE STREAK FROM THE CURRENT USER'S OWN CHECK-INS
 
-  div.textContent = value;
+function calculateStreak(checkins) {
+  if (!checkins?.length) return 0;
 
-  return div.innerHTML;
+  const uniqueDates = [
+    ...new Set(checkins.map((item) => item.check_in_date).filter(Boolean)),
+  ].sort((a, b) => b.localeCompare(a));
+
+  if (!uniqueDates.length) return 0;
+
+  const today = getLocalDateString();
+
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+
+  const yesterday = getLocalDateString(yesterdayDate);
+
+  if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) {
+    return 0;
+  }
+
+  let streak = 1;
+
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const [yearA, monthA, dayA] = uniqueDates[i - 1].split("-").map(Number);
+
+    const [yearB, monthB, dayB] = uniqueDates[i].split("-").map(Number);
+
+    const newer = Date.UTC(yearA, monthA - 1, dayA);
+    const older = Date.UTC(yearB, monthB - 1, dayB);
+
+    const daysApart = Math.round((newer - older) / 86400000);
+
+    if (daysApart === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
 }
+
+// LOAD ACTIVITY FEED
+
 async function loadCheckins() {
   try {
-    const {
-      data: { user },
-      error: userError,
-    } = await studySyncSupabase.auth.getUser();
+    if (!currentUser) {
+      const {
+        data: { user },
+        error: userError,
+      } = await studySyncSupabase.auth.getUser();
 
-    if (userError) {
-      throw userError;
+      if (userError) throw userError;
+
+      currentUser = user;
     }
 
-    if (!user) {
+    if (!currentUser) {
+      window.location.href = "login.html";
       return;
     }
-
-    // Get the user's check-ins
 
     const { data: checkins, error } = await studySyncSupabase
       .from("check_ins")
-      .select("id, content, created_at, check_in_date")
-      .eq("user_id", user.id)
-      .order("created_at", {
-        ascending: false,
-      });
+      .select("id, user_id, content, created_at, check_in_date")
+      .order("created_at", { ascending: false })
+      .limit(30);
 
-    if (error) {
-      throw error;
-    }
-    const streak = calculateStreak(checkins);
+    if (error) throw error;
+
+    const safeCheckins = checkins || [];
+
+    const ownCheckins = safeCheckins.filter(
+      (item) => item.user_id === currentUser.id,
+    );
+
+    const streak = calculateStreak(ownCheckins);
 
     currentStreak.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
 
-    // No check-ins
-    if (!checkins || checkins.length === 0) {
-      currentStreak.textContent = "0 days";
-      todayStatus.textContent = "Not checked in";
+    const today = getLocalDateString();
 
-      todayStatusMessage.textContent = "Share what you accomplished today.";
+    const checkedInToday = ownCheckins.some(
+      (item) => item.check_in_date === today,
+    );
 
+    todayStatus.textContent = checkedInToday
+      ? "Checked in ✓"
+      : "Not checked in";
+
+    todayStatusMessage.textContent = checkedInToday
+      ? "Nice work. You showed up today."
+      : "Share what you accomplished today.";
+
+    const partnerId = currentPartner?.id;
+
+    const visibleCheckins = safeCheckins
+      .filter(
+        (item) =>
+          item.user_id === currentUser.id ||
+          (partnerId && item.user_id === partnerId),
+      )
+      .slice(0, 12);
+
+    if (!visibleCheckins.length) {
       recentCheckinsEmpty.style.display = "flex";
-
       recentCheckinsList.innerHTML = "";
-
       return;
     }
 
-    // ----------------------------------------
-    // CHECK IF USER CHECKED IN TODAY
-    // ----------------------------------------
+    const ownName =
+      currentUser.user_metadata?.full_name ||
+      currentUser.email?.split("@")[0] ||
+      "You";
 
-    const today = new Date();
-
-    const todayStart = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-
-    const todayEnd = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() + 1,
-    );
-
-    const checkedInToday = checkins.some((checkin) => {
-      const checkinDate = new Date(checkin.created_at);
-
-      return checkinDate >= todayStart && checkinDate < todayEnd;
-    });
-
-    if (checkedInToday) {
-      todayStatus.textContent = "Checked in ✓";
-
-      todayStatusMessage.textContent = "Nice work. You showed up today.";
-    } else {
-      todayStatus.textContent = "Not checked in";
-
-      todayStatusMessage.textContent = "Share what you accomplished today.";
-    }
-
-    // ----------------------------------------
-    // DISPLAY RECENT CHECK-INS
-    // ----------------------------------------
+    const partnerName = currentPartner?.full_name || "Your partner";
 
     recentCheckinsEmpty.style.display = "none";
-
     recentCheckinsList.innerHTML = "";
 
-    checkins.forEach((checkin) => {
+    visibleCheckins.forEach((checkin) => {
+      const isOwn = checkin.user_id === currentUser.id;
+
       const item = document.createElement("article");
 
-      item.className = "recent-checkin-item";
+      item.className = isOwn
+        ? "recent-checkin-item"
+        : "recent-checkin-item partner-checkin-item";
 
-      const date = new Date(checkin.created_at);
+      const createdAt = new Date(checkin.created_at);
 
-      const formattedDate = date.toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-
-      const formattedTime = date.toLocaleTimeString(undefined, {
+      const formattedTime = createdAt.toLocaleTimeString(undefined, {
         hour: "numeric",
         minute: "2-digit",
       });
 
+      const authorName = isOwn ? ownName : partnerName;
+      const authorLabel = isOwn ? "You" : "Your partner";
+
       item.innerHTML = `
-                <div class="recent-checkin-icon">
-                    ✓
-                </div>
+        <div class="recent-checkin-icon" aria-hidden="true">
+          ${isOwn ? "✓" : "♧"}
+        </div>
 
-                <div class="recent-checkin-content">
-                    <p>${escapeHTML(checkin.content)}</p>
+        <div class="recent-checkin-content">
+          <div class="checkin-author-row">
+            <strong>${escapeHTML(authorName)}</strong>
+            <span class="checkin-author-label">${authorLabel}</span>
+          </div>
 
-                    <span>
-                        ${formattedDate} · ${formattedTime}
-                    </span>
-                </div>
-            `;
+          <p>${escapeHTML(checkin.content || "")}</p>
+
+          <span>
+            ${escapeHTML(formatCheckinDate(checkin))}
+            ·
+            ${escapeHTML(formattedTime)}
+          </span>
+        </div>
+      `;
 
       recentCheckinsList.appendChild(item);
     });
   } catch (error) {
-    console.error("Load check-ins error:", error);
+    console.error("Load activity feed error:", error);
+
+    recentCheckinsEmpty.style.display = "flex";
+
+    recentCheckinsEmpty.innerHTML = `
+      <div class="empty-state-icon">!</div>
+      <h3>Couldn't load activity</h3>
+      <p>Please refresh the page and try again.</p>
+    `;
   }
 }
 
-// CHECK-IN SUBMIT
-checkinForm.addEventListener("submit", async (event) => {
+// SUBMIT CHECK-IN
+
+checkinForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const content = checkinContent.value.trim();
 
   if (!content) {
     checkinMessage.style.color = "var(--color-danger)";
-
     checkinMessage.textContent = "Tell us what you accomplished today.";
-
     return;
   }
 
@@ -322,39 +348,24 @@ checkinForm.addEventListener("submit", async (event) => {
       error: userError,
     } = await studySyncSupabase.auth.getUser();
 
-    if (userError) {
-      throw userError;
-    }
+    if (userError) throw userError;
 
     if (!user) {
       window.location.href = "login.html";
       return;
     }
 
-    // Get today's date using the user's browser timezone
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-
-    const day = String(now.getDate()).padStart(2, "0");
-
-    const checkInDate = `${year}-${month}-${day}`;
-
     const { error } = await studySyncSupabase.from("check_ins").insert({
       user_id: user.id,
-      content: content,
-      check_in_date: checkInDate,
+      content,
+      check_in_date: getLocalDateString(),
     });
 
     if (error) {
-      // User already checked in today
       if (error.code === "23505") {
         checkinMessage.style.color = "var(--color-warning)";
-
         checkinMessage.textContent =
           "You've already checked in today. Come back tomorrow! ✓";
-
         return;
       }
 
@@ -362,89 +373,28 @@ checkinForm.addEventListener("submit", async (event) => {
     }
 
     checkinMessage.style.color = "var(--color-success)";
-
     checkinMessage.textContent = "Check-in recorded! 🎉";
 
     checkinForm.reset();
+    currentUser = user;
 
-    // Refresh dashboard data
     await loadCheckins();
   } catch (error) {
     console.error("Check-in error:", error);
 
     checkinMessage.style.color = "var(--color-danger)";
-
     checkinMessage.textContent =
       error.message || "Something went wrong. Please try again.";
   } finally {
     submitButton.disabled = false;
-
     submitButton.textContent = "Submit check-in";
   }
 });
 
-// CALCULATE CURRENT STREAK
-function calculateStreak(checkins) {
-  if (!checkins || checkins.length === 0) {
-    return 0;
-  }
-
-  // Get unique check-in dates
-  const dates = [...new Set(checkins.map((checkin) => checkin.check_in_date))];
-
-  // Sort newest → oldest
-  dates.sort((a, b) => {
-    return new Date(b) - new Date(a);
-  });
-
-  const today = new Date();
-
-  const todayDate = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  );
-
-  // Convert today's date to YYYY-MM-DD
-  const todayString = `${todayDate.getFullYear()}-${String(
-    todayDate.getMonth() + 1,
-  ).padStart(2, "0")}-${String(todayDate.getDate()).padStart(2, "0")}`;
-
-  // Streak must include today
-  if (dates[0] !== todayString) {
-    return 0;
-  }
-
-  let streak = 1;
-
-  for (let i = 1; i < dates.length; i++) {
-    const current = new Date(dates[i - 1]);
-
-    const previous = new Date(dates[i]);
-
-    const difference = Math.round((current - previous) / (1000 * 60 * 60 * 24));
-
-    if (difference === 1) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-}
-// ========================================
+// LOAD CONNECTED PARTNER CARD
 
 async function loadDashboardPartner() {
   const partnerCard = document.getElementById("partner-card");
-
-  const overviewPartnerName = document.getElementById("overview-partner-name");
-
-  const overviewPartnerMessage = document.getElementById(
-    "overview-partner-message",
-  );
-
-  const partnerPanelStatus = document.getElementById("partner-panel-status");
 
   if (!partnerCard) return;
 
@@ -455,150 +405,114 @@ async function loadDashboardPartner() {
 
     if (error) throw error;
 
-    // ----------------------------------------
-    // NO PARTNER
-    // ----------------------------------------
-
-    if (!partners || partners.length === 0) {
-      if (overviewPartnerName) {
-        overviewPartnerName.textContent = "Not connected";
-      }
-
-      if (overviewPartnerMessage) {
-        overviewPartnerMessage.textContent =
-          "Invite someone to keep you accountable.";
-      }
-
-      if (partnerPanelStatus) {
-        partnerPanelStatus.textContent = "Not connected";
-      }
+    if (!partners?.length) {
+      currentPartner = null;
 
       partnerCard.innerHTML = `
-                <div class="panel-heading">
-                    <div>
-                        <span class="panel-eyebrow">
-                            Accountability
-                        </span>
+        <div class="panel-heading">
+          <div>
+            <span class="panel-eyebrow">Accountability</span>
+            <h2>Your partner</h2>
+          </div>
 
-                        <h2>Your partner</h2>
-                    </div>
+          <span class="panel-status">Not connected</span>
+        </div>
 
-                    <span class="panel-status">
-                        Not connected
-                    </span>
-                </div>
+        <div class="empty-state">
+          <div class="empty-state-icon">♧</div>
+          <h3>No accountability partner yet</h3>
+          <p>
+            Connect with someone and start showing up together.
+          </p>
+          <a href="partner.html" class="secondary-button">
+            Find a partner
+          </a>
+        </div>
+      `;
 
-                <div class="empty-state">
-                    <div class="empty-state-icon">♧</div>
-
-                    <h3>No accountability partner yet</h3>
-
-                    <p>
-                        Connect with someone and start
-                        showing up together.
-                    </p>
-
-                    <a
-                        href="partner.html"
-                        class="secondary-button"
-                    >
-                        Find a partner
-                    </a>
-                </div>
-            `;
-
+      updatePartnerOverview(null);
+      await loadCheckins();
       return;
     }
 
-    // ----------------------------------------
-    // PARTNER EXISTS
-    // ----------------------------------------
+    currentPartner = partners[0];
 
-    const partner = partners[0];
-
+    const partner = currentPartner;
     const fullName = partner.full_name || "StudySync user";
-
     const username = partner.username || "username";
 
-    const avatarLetter = fullName.charAt(0).toUpperCase();
+    const avatar = partner.avatar_url
+      ? `<img src="${escapeHTML(partner.avatar_url)}" alt="" />`
+      : escapeHTML(fullName.charAt(0).toUpperCase());
 
-    // Update overview card
-    if (overviewPartnerName) {
-      overviewPartnerName.textContent = fullName;
-    }
-
-    if (overviewPartnerMessage) {
-      overviewPartnerMessage.textContent = `@${username}`;
-    }
-
-    // Update large partner panel
     partnerCard.innerHTML = `
-            <div class="panel-heading">
-                <div>
-                    <span class="panel-eyebrow">
-                        Accountability
-                    </span>
+      <div class="panel-heading">
+        <div>
+          <span class="panel-eyebrow">Accountability</span>
+          <h2>Your partner</h2>
+        </div>
 
-                    <h2>Your partner</h2>
-                </div>
+        <span class="panel-status">Connected</span>
+      </div>
 
-                <span class="panel-status">
-                    Connected
-                </span>
-            </div>
+      <div class="dashboard-partner">
+        <div class="dashboard-partner-info">
+          <div class="dashboard-partner-avatar">
+            ${avatar}
+          </div>
 
-            <div class="dashboard-partner">
+          <div>
+            <h3>${escapeHTML(fullName)}</h3>
+            <p>@${escapeHTML(username)}</p>
+            <span class="partner-status">Connected</span>
+          </div>
+        </div>
 
-                <div class="dashboard-partner-info">
+        <a href="partner.html" class="secondary-button">
+          View partner
+        </a>
+      </div>
+    `;
 
-                    <div class="dashboard-partner-avatar">
+    updatePartnerOverview(partner);
 
-                        ${
-                          partner.avatar_url
-                            ? `
-                                    <img
-                                        src="${escapeHTML(partner.avatar_url)}"
-                                        alt=""
-                                    />
-                                `
-                            : escapeHTML(avatarLetter)
-                        }
-
-                    </div>
-
-                    <div>
-                        <h3>
-                            ${escapeHTML(fullName)}
-                        </h3>
-
-                        <p>
-                            @${escapeHTML(username)}
-                        </p>
-
-                        <span class="partner-status">
-                            Connected
-                        </span>
-                    </div>
-
-                </div>
-
-                <a
-                    href="partner.html"
-                    class="secondary-button"
-                >
-                    View partner
-                </a>
-
-            </div>
-        `;
+    await loadCheckins();
   } catch (error) {
     console.error("Load dashboard partner error:", error);
   }
 }
 
+// UPDATE ACCOUNTABILITY OVERVIEW CARD
+
+function updatePartnerOverview(partner) {
+  const cards = document.querySelectorAll(".overview-card");
+
+  let partnerCard = null;
+
+  cards.forEach((card) => {
+    const label = card.querySelector(".overview-label");
+
+    if (label?.textContent.trim() === "Accountability partner") {
+      partnerCard = card;
+    }
+  });
+
+  if (!partnerCard) return;
+
+  const heading = partnerCard.querySelector("h2");
+  const description = partnerCard.querySelector("p");
+
+  if (heading) {
+    heading.textContent = partner?.full_name || "Not connected";
+  }
+
+  if (description) {
+    description.textContent = partner
+      ? `@${partner.username || "username"}`
+      : "Invite someone to keep you accountable.";
+  }
+}
+
 // INITIALIZE
-// ========================================
 
 loadDashboardUser();
-loadCheckins();
-loadDashboardPartner();
