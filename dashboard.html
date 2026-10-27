@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Dashboard | StudySync</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="./CSS/variables.css" />
     <link rel="stylesheet" href="./CSS/dashboard.css" />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
 
   <body>
@@ -20,33 +28,45 @@
 
         <nav class="sidebar-nav">
           <a href="dashboard.html" class="nav-item active">
-            <span class="nav-icon">⌂</span>
+            <span class="nav-icon">
+              <i data-lucide="layout-dashboard"></i>
+            </span>
             <span>Dashboard</span>
           </a>
 
           <a href="partner.html" class="nav-item">
-            <span class="nav-icon">♧</span>
+            <span class="nav-icon">
+              <i data-lucide="users"></i>
+            </span>
             <span>Partner</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">✓</span>
+            <span class="nav-icon">
+              <i data-lucide="check-circle"></i>
+            </span>
             <span>Check-ins</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">↗</span>
+            <span class="nav-icon">
+              <i data-lucide="chart-no-axes-column-increasing"></i>
+            </span>
             <span>Progress</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">⚙</span>
+            <span class="nav-icon">
+              <i data-lucide="settings"></i>
+            </span>
             <span>Settings</span>
           </a>
         </nav>
 
-        <button class="logout-button" id="logout-button">
-          <span class="nav-icon">↪</span>
+        <button class="logout-button" id="logout-button" type="button">
+          <span class="nav-icon">
+            <i data-lucide="log-out"></i>
+          </span>
           <span>Log out</span>
         </button>
       </aside>
@@ -58,9 +78,10 @@
           <button
             class="mobile-menu-button"
             id="mobile-menu-button"
+            type="button"
             aria-label="Open navigation"
           >
-            ☰
+            <i data-lucide="menu"></i>
           </button>
 
           <div class="topbar-spacer"></div>
@@ -69,17 +90,17 @@
             class="theme-toggle"
             id="theme-toggle"
             type="button"
-            aria-label="Switch theme"
+            aria-label="Toggle theme"
           >
-            ☀
+            <i data-lucide="sun"></i>
           </button>
 
           <div class="user-menu">
             <div class="user-avatar" id="user-avatar">J</div>
 
             <div class="user-details">
-              <span class="user-name" id="topbar-user-name"> User </span>
-              <span class="user-role"> Member </span>
+              <span class="user-name" id="topbar-user-name">User</span>
+              <span class="user-role">Member</span>
             </div>
           </div>
         </header>
@@ -88,7 +109,7 @@
         <section class="dashboard-content">
           <div class="dashboard-heading">
             <div>
-              <span class="dashboard-eyebrow"> Your dashboard </span>
+              <span class="dashboard-eyebrow">Your dashboard</span>
 
               <h1>
                 <span id="welcome-greeting">Good morning</span>,
@@ -97,8 +118,10 @@
 
               <p>Keep showing up. Your progress starts with today.</p>
             </div>
+
             <button class="primary-button" id="make-checkin-button">
-              + Make a check-in
+              <i data-lucide="plus"></i>
+              Make a check-in
             </button>
           </div>
 
@@ -106,9 +129,11 @@
           <section class="overview-grid">
             <article class="overview-card">
               <div class="overview-card-top">
-                <span class="overview-label"> Today's status </span>
+                <span class="overview-label">Today's status</span>
 
-                <span class="overview-icon">✓</span>
+                <span class="overview-icon">
+                  <i data-lucide="check-circle"></i>
+                </span>
               </div>
 
               <h2 id="today-status">Not checked in</h2>
@@ -120,9 +145,11 @@
 
             <article class="overview-card">
               <div class="overview-card-top">
-                <span class="overview-label"> Current streak </span>
+                <span class="overview-label">Current streak</span>
 
-                <span class="overview-icon">✦</span>
+                <span class="overview-icon">
+                  <i data-lucide="flame"></i>
+                </span>
               </div>
 
               <h2 id="current-streak">0 days</h2>
@@ -132,9 +159,11 @@
 
             <article class="overview-card">
               <div class="overview-card-top">
-                <span class="overview-label"> Accountability partner </span>
+                <span class="overview-label">Accountability partner</span>
 
-                <span class="overview-icon">♧</span>
+                <span class="overview-icon">
+                  <i data-lucide="users"></i>
+                </span>
               </div>
 
               <h2>Not connected</h2>
@@ -145,45 +174,48 @@
 
           <!-- Main Dashboard Grid -->
           <section class="dashboard-grid">
-            <!-- Partner Section -->
+            <!-- Partner Panel -->
             <article class="dashboard-panel partner-panel" id="partner-card">
               <div class="panel-heading">
                 <div>
-                  <span class="panel-eyebrow"> Accountability </span>
-
+                  <span class="panel-eyebrow">Accountability</span>
                   <h2>Your partner</h2>
                 </div>
 
-                <span class="panel-status"> Not connected </span>
+                <span class="panel-status">Not connected</span>
               </div>
 
               <div class="empty-state">
-                <div class="empty-state-icon">♧</div>
+                <div class="empty-state-icon">
+                  <i data-lucide="user-round"></i>
+                </div>
 
                 <h3>No accountability partner yet</h3>
 
                 <p>Connect with someone and start showing up together.</p>
 
                 <a href="partner.html" class="secondary-button">
+                  <i data-lucide="user-round-plus"></i>
                   Find a partner
                 </a>
               </div>
             </article>
 
-            <!-- Activity Section -->
+            <!-- Activity Panel -->
             <article class="dashboard-panel activity-panel">
               <div class="panel-heading">
                 <div>
-                  <span class="panel-eyebrow"> Your activity </span>
-
+                  <span class="panel-eyebrow">Your activity</span>
                   <h2>Recent check-ins</h2>
                 </div>
 
-                <a href="#" class="panel-link"> View all </a>
+                <a href="#" class="panel-link">View all</a>
               </div>
 
               <div class="empty-state compact" id="recent-checkins-empty">
-                <div class="empty-state-icon">✓</div>
+                <div class="empty-state-icon">
+                  <i data-lucide="clipboard-check"></i>
+                </div>
 
                 <h3>No check-ins yet</h3>
 
@@ -196,22 +228,28 @@
         </section>
       </main>
     </div>
+
     <!-- Check-in Modal -->
     <div class="modal-overlay" id="checkin-modal">
-      <div class="checkin-modal" role="dialog" aria-modal="true">
+      <div
+        class="checkin-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkin-modal-title"
+      >
         <button
           class="modal-close"
           id="close-checkin-modal"
           type="button"
           aria-label="Close check-in"
         >
-          ×
+          <i data-lucide="x"></i>
         </button>
 
         <div class="modal-header">
           <span class="modal-eyebrow">Daily check-in</span>
 
-          <h2>What did you accomplish today?</h2>
+          <h2 id="checkin-modal-title">What did you accomplish today?</h2>
 
           <p>
             Share what you showed up for today. It doesn't have to be something
@@ -221,7 +259,7 @@
 
         <form id="checkin-form">
           <div class="form-group">
-            <label for="checkin-content"> Your check-in </label>
+            <label for="checkin-content">Your check-in</label>
 
             <textarea
               id="checkin-content"
@@ -241,15 +279,30 @@
           ></div>
 
           <button type="submit" class="primary-button checkin-submit">
+            <i data-lucide="check"></i>
             Submit check-in
           </button>
         </form>
       </div>
     </div>
 
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- StudySync Scripts -->
     <script src="./JS/supabase.js"></script>
     <script src="./JS/dashboard.js"></script>
     <script src="./JS/theme.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+      window.refreshStudySyncIcons = function () {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      };
+
+      window.refreshStudySyncIcons();
+    </script>
   </body>
 </html>

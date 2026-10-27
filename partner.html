@@ -6,13 +6,21 @@
 
     <title>Partner | StudySync</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="./CSS/variables.css" />
     <link rel="stylesheet" href="./CSS/dashboard.css" />
     <link rel="stylesheet" href="./CSS/partner.css" />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
 
   <body>
     <div class="dashboard-layout">
+      <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
           <a href="dashboard.html" class="dashboard-logo">
@@ -23,27 +31,37 @@
 
         <nav class="sidebar-nav">
           <a href="dashboard.html" class="nav-item">
-            <span class="nav-icon">⌂</span>
+            <span class="nav-icon">
+              <i data-lucide="layout-dashboard"></i>
+            </span>
             <span>Dashboard</span>
           </a>
 
           <a href="partner.html" class="nav-item active">
-            <span class="nav-icon">♧</span>
+            <span class="nav-icon">
+              <i data-lucide="users"></i>
+            </span>
             <span>Partner</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">✓</span>
+            <span class="nav-icon">
+              <i data-lucide="check-circle"></i>
+            </span>
             <span>Check-ins</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">◔</span>
+            <span class="nav-icon">
+              <i data-lucide="chart-no-axes-column-increasing"></i>
+            </span>
             <span>Progress</span>
           </a>
 
           <a href="#" class="nav-item">
-            <span class="nav-icon">⚙</span>
+            <span class="nav-icon">
+              <i data-lucide="settings"></i>
+            </span>
             <span>Settings</span>
           </a>
         </nav>
@@ -54,7 +72,9 @@
             id="logout-button"
             type="button"
           >
-            <span class="nav-icon">↪</span>
+            <span class="nav-icon">
+              <i data-lucide="log-out"></i>
+            </span>
             <span>Logout</span>
           </button>
         </div>
@@ -70,7 +90,7 @@
             type="button"
             aria-label="Open menu"
           >
-            ☰
+            <i data-lucide="menu"></i>
           </button>
 
           <div class="topbar-spacer"></div>
@@ -81,25 +101,24 @@
             type="button"
             aria-label="Toggle theme"
           >
-            ◐
+            <i data-lucide="sun"></i>
           </button>
 
           <div class="user-menu">
             <div class="user-avatar" id="user-avatar">?</div>
 
             <div class="user-details">
-              <span class="user-name" id="topbar-user-name"> User </span>
-
-              <span class="user-role"> Member </span>
+              <span class="user-name" id="topbar-user-name">User</span>
+              <span class="user-role">Member</span>
             </div>
           </div>
         </header>
 
-        <!-- Page content -->
+        <!-- Page Content -->
         <section class="dashboard-content partner-page">
           <div class="page-heading">
             <div>
-              <span class="page-eyebrow"> Accountability </span>
+              <span class="page-eyebrow">Accountability</span>
 
               <h1>Your Partner</h1>
 
@@ -109,11 +128,11 @@
             </div>
           </div>
 
-          <!-- Find partner -->
+          <!-- Find Partner -->
           <section class="partner-card">
             <div class="partner-card-header">
               <div>
-                <span class="section-eyebrow"> Find someone </span>
+                <span class="section-eyebrow">Find someone</span>
 
                 <h2>Add an accountability partner</h2>
 
@@ -126,7 +145,7 @@
             <form id="partner-search-form">
               <div class="partner-input-row">
                 <div class="form-group">
-                  <label for="partner-username"> Username </label>
+                  <label for="partner-username">Username</label>
 
                   <div class="username-input">
                     <span>@</span>
@@ -158,14 +177,13 @@
               aria-live="polite"
             ></div>
 
-            <!-- Search result -->
+            <!-- Search Result -->
             <div class="partner-result" id="partner-result" hidden>
               <div class="partner-user-info">
                 <div class="partner-avatar" id="result-avatar">?</div>
 
                 <div>
                   <h3 id="result-name">User</h3>
-
                   <p id="result-username">@username</p>
                 </div>
               </div>
@@ -175,16 +193,17 @@
                 class="secondary-button"
                 id="send-request-button"
               >
+                <i data-lucide="user-round-plus"></i>
                 Send request
               </button>
             </div>
           </section>
 
-          <!-- Incoming requests -->
+          <!-- Incoming Requests -->
           <section class="partner-card">
             <div class="partner-card-header">
               <div>
-                <span class="section-eyebrow"> Requests </span>
+                <span class="section-eyebrow">Requests</span>
 
                 <h2>Incoming requests</h2>
 
@@ -194,7 +213,9 @@
 
             <div class="requests-list" id="requests-list">
               <div class="partner-empty" id="requests-empty">
-                <span class="empty-icon">♧</span>
+                <span class="empty-icon">
+                  <i data-lucide="users"></i>
+                </span>
 
                 <h3>No pending requests</h3>
 
@@ -205,11 +226,11 @@
             </div>
           </section>
 
-          <!-- Current partner -->
+          <!-- Current Partner -->
           <section class="partner-card">
             <div class="partner-card-header">
               <div>
-                <span class="section-eyebrow"> Connected </span>
+                <span class="section-eyebrow">Connected</span>
 
                 <h2>Your accountability partner</h2>
 
@@ -219,7 +240,9 @@
 
             <div class="current-partner" id="current-partner">
               <div class="partner-empty">
-                <span class="empty-icon">◎</span>
+                <span class="empty-icon">
+                  <i data-lucide="user-round"></i>
+                </span>
 
                 <h3>No partner yet</h3>
 
@@ -231,11 +254,27 @@
       </main>
     </div>
 
+    <!-- Check icons in dynamically generated content too -->
+    <script>
+      window.refreshStudySyncIcons = function () {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      };
+
+      window.refreshStudySyncIcons();
+    </script>
+
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Application Scripts -->
     <script src="./JS/supabase.js"></script>
     <script src="./JS/theme.js"></script>
     <script src="./JS/partner.js"></script>
+
+    <script>
+      window.refreshStudySyncIcons();
+    </script>
   </body>
 </html>

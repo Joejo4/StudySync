@@ -113,3 +113,46 @@
   --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
 }
+
+/* StudySync icon system */
+.nav-icon,
+.overview-icon,
+.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.overview-icon svg,
+.empty-state-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+.theme-toggle svg,
+.mobile-menu-button svg,
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.nav-item.active .nav-icon {
+  color: var(--color-primary);
+}
+
+.overview-icon {
+  color: var(--color-primary);
+}
+
+.empty-state-icon {
+  color: var(--color-text-muted);
+}
